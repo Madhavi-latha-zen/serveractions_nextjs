@@ -1,10 +1,10 @@
-'use server';
+"use server";
 
 import { revalidatePath } from "next/cache";
 import connectDB from "../../lib/db";
 import StudentModel from "../../lib/models/studentModel";
 
-export async function createStudent(formData: { name: string; email: string }) {
+export async function createStudent(formData: { name: string; email: string; role: 'Student' | 'Teacher' | 'Admin' }) {
   try {
     await connectDB();
 

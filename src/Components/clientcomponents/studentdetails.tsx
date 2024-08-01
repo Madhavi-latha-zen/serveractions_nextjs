@@ -18,9 +18,9 @@ import { toast } from "sonner";
 import { createStudent } from "../../lib/studentAction";
 
 const formSchema = z.object({
-  name: z.string().min(1, { message: "Name is required." }),
+  name: z.string().min(4, { message: "Name must be at least 4 characters long." }), // Updated validation
   email: z.string().email({ message: "Invalid email address." }),
-  role: z.enum(['Student', 'Teacher', 'Admin'], { message: "Please select a role." }), // Added dropdown field
+  role: z.enum(['Student', 'Teacher', 'Admin'], { message: "Please select a role." }), // Dropdown field
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -148,8 +148,4 @@ export default function StudentDetailsClient() {
     </main>
   );
 }
-
-
-
-
 

@@ -4,6 +4,7 @@ import { createStudent } from '../../lib/studentAction';
 interface StudentRequestBody {
   name: string;
   email: string;
+  role: 'Student' | 'Teacher' | 'Admin';
 }
 
 interface CreateStudentResponse {
@@ -17,10 +18,10 @@ export default async function handler(
   res: NextApiResponse<CreateStudentResponse>
 ) {
   if (req.method === 'POST') {
-    const { name, email }: StudentRequestBody = req.body;
+    const { name, email, role }: StudentRequestBody = req.body;
 
     try {
-      const result = await createStudent({ name, email });
+      const result = await createStudent({ name, email, role });
 
       if (result.created) {
         res.status(200).json(result);
@@ -35,3 +36,4 @@ export default async function handler(
     res.status(405).json({ created: false, error: 'Method not allowed' });
   }
 }
+
