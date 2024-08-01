@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { toast } from "sonner";
 import { createStudent } from "../../lib/studentAction";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(4, { message: "Name must be at least 4 characters long." }), // Updated validation
@@ -32,6 +33,7 @@ export default function StudentDetailsClient() {
   });
 
   const { handleSubmit, reset, formState: { errors } } = form;
+  const router = useRouter();
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -53,6 +55,7 @@ export default function StudentDetailsClient() {
         });
 
         reset();
+        router.push('student/alldetails');
       } else {
         throw new Error('Failed to submit data.');
       }
@@ -148,4 +151,3 @@ export default function StudentDetailsClient() {
     </main>
   );
 }
-

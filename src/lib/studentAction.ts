@@ -19,3 +19,33 @@ export async function createStudent(formData: { name: string; email: string; rol
     return { created: false, error: 'Internal Server Error' };
   }
 }
+
+export async function getAllStudents() {
+  try {
+    await connectDB();
+    const students = await StudentModel.find().exec();
+    console.log('Fetched students:', students);
+
+    return { success: true, data: students };
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    return { success: false, error: 'Internal Server Error' };
+  }
+}
+
+
+export async function updateStudent(studentId: string, updates: { name?: string; email?: string; role?: 'Student' | 'Teacher' | 'Admin' }) {
+  try {
+    await connectDB();
+
+    const response = await StudentModel.findByIdAndUpdate(studentId, updates, { new: true });
+    console.log('Student updated:', response);
+
+    revalidatePath('/student');
+
+    return { updated: true, data: response };
+  } catch (error) {
+    console.error('Error updating student:', error);
+    return { updated: false, error: 'Internal Server Error' };
+  }
+}
