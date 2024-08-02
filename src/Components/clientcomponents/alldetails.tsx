@@ -16,12 +16,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { updateStudent, deleteStudent } from "../../lib/studentAction";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Student {
   _id: string;
   name: string;
   email: string;
-  role: 'Student' | 'Teacher' | 'Admin';
+  role: string;
 }
 
 interface AlldetailsProps {
@@ -31,7 +40,7 @@ interface AlldetailsProps {
 const Alldetails = ({ students }: AlldetailsProps) => {
   const [studentList, setStudentList] = useState<Student[]>(students);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [formData, setFormData] = useState<{ name: string; email: string; role: 'Student' | 'Teacher' | 'Admin' } | null>(null);
+  const [formData, setFormData] = useState<{ name: string; email: string; role: string } | null>(null);
 
   const handleOpenDialog = (student: Student) => {
     setSelectedStudent(student);
@@ -57,8 +66,6 @@ const Alldetails = ({ students }: AlldetailsProps) => {
               onClick: () => console.log("Undo"),
             },
           });
-
-          // Update the local student list
           setStudentList(prevList => prevList.map(student => student._id === selectedStudent._id ? { ...student, ...formData } : student));
 
           handleCloseDialog();
@@ -78,8 +85,6 @@ const Alldetails = ({ students }: AlldetailsProps) => {
 
       if (result.deleted) {
         toast.success('Student soft deleted successfully');
-        
-        // Update the local student list to remove the deleted student
         setStudentList(prevList => prevList.filter(student => student._id !== studentId));
       } else {
         throw new Error(result.error || 'Failed to delete student.');
@@ -150,12 +155,25 @@ const Alldetails = ({ students }: AlldetailsProps) => {
                           <Label htmlFor="role" className="text-right">
                             Role
                           </Label>
-                          <Input
-                            id="role"
+                          <div className="select-wrapper">
+                          <Select
                             value={formData?.role || ''}
-                            onChange={(e) => setFormData(prev => prev ? { ...prev, role: e.target.value as 'Student' | 'Teacher' | 'Admin' } : null)}
-                            className="col-span-3"
-                          />
+                            onValueChange={(value) => setFormData(prev => prev ? { ...prev, role: value } : null)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Roles</SelectLabel>
+                                <SelectItem value="Student">Student</SelectItem>
+                                <SelectItem value="Teacher">Teacher</SelectItem>
+                                <SelectItem value="Admin">Admin</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
                         </div>
                       </div>
                       <DialogFooter>
@@ -178,3 +196,4 @@ const Alldetails = ({ students }: AlldetailsProps) => {
 };
 
 export default Alldetails;
+

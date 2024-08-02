@@ -14,14 +14,23 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { createStudent } from "../../lib/studentAction";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  name: z.string().min(4, { message: "Name must be at least 4 characters long." }), 
+  name: z.string().min(4, { message: "Name must be at least 4 characters long." }),
   email: z.string().email({ message: "Invalid email address." }),
-  role: z.enum(['Student', 'Teacher', 'Admin'], { message: "Please select a role." }), // Dropdown field
+  role: z.string().min(1, { message: "Role is required." }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -121,15 +130,22 @@ export default function StudentDetailsClient() {
                 <FormItem>
                   <FormLabel>Role</FormLabel>
                   <FormControl>
-                    <select
-                      {...field}
-                      className={`mt-1 block w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 ${errors.role ? 'border-red-500' : 'border-gray-300'}`}
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
                     >
-                      <option value="" disabled>Select a role</option>
-                      <option value="Student">Student</option>
-                      <option value="Teacher">Teacher</option>
-                      <option value="Admin">Admin</option>
-                    </select>
+                      <SelectTrigger className="w-full px-3 py-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectLabel>Roles</SelectLabel>
+                          <SelectItem value="Student">Student</SelectItem>
+                          <SelectItem value="Teacher">Teacher</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormDescription>
                     Select your role.
@@ -151,3 +167,4 @@ export default function StudentDetailsClient() {
     </main>
   );
 }
+

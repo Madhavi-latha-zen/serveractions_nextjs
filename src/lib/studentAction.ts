@@ -1,9 +1,16 @@
 "use server";
+
 import { revalidatePath } from "next/cache";
 import connectDB from "../../lib/db";
 import StudentModel from "../../lib/models/studentModel";
 
-export async function createStudent(formData: { name: string; email: string; role: 'Student' | 'Teacher' | 'Admin' }) {
+interface StudentFormData {
+  name: string;
+  email: string;
+  role: string;
+}
+
+export async function createStudent(formData: StudentFormData) {
   try {
     await connectDB();
 
@@ -22,7 +29,7 @@ export async function createStudent(formData: { name: string; email: string; rol
 export async function getAllStudents() {
   try {
     await connectDB();
-    const students = await StudentModel.find({ deleted: false }).exec(); 
+    const students = await StudentModel.find({ deleted: false }).exec();
     console.log('Fetched students:', students);
 
     return { success: true, data: students };
@@ -32,7 +39,7 @@ export async function getAllStudents() {
   }
 }
 
-export async function updateStudent(studentId: string, updates: { name?: string; email?: string; role?: 'Student' | 'Teacher' | 'Admin' }) {
+export async function updateStudent(studentId: string, updates: Partial<StudentFormData>) {
   try {
     await connectDB();
 
