@@ -19,7 +19,7 @@ import { createStudent } from "../../lib/studentAction";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
-  name: z.string().min(4, { message: "Name must be at least 4 characters long." }), // Updated validation
+  name: z.string().min(4, { message: "Name must be at least 4 characters long." }), 
   email: z.string().email({ message: "Invalid email address." }),
   role: z.enum(['Student', 'Teacher', 'Admin'], { message: "Please select a role." }), // Dropdown field
 });
