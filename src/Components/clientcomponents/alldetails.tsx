@@ -25,6 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTheme } from "next-themes";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  email: z.string().email("Invalid email address"),
+  role: z.string().nonempty("Role is required"),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 interface Student {
   _id: string;
@@ -40,34 +52,35 @@ interface AlldetailsProps {
 const Alldetails = ({ students }: AlldetailsProps) => {
   const [studentList, setStudentList] = useState<Student[]>(students);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [formData, setFormData] = useState<{ name: string; email: string; role: string } | null>(null);
+  const { theme } = useTheme();
+
+  const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+  });
 
   const handleOpenDialog = (student: Student) => {
     setSelectedStudent(student);
-    setFormData({ name: student.name, email: student.email, role: student.role });
+    reset({ name: student.name, email: student.email, role: student.role });
   };
 
   const handleCloseDialog = () => {
     setSelectedStudent(null);
   };
 
-  const handleSubmit = async () => {
-    if (selectedStudent && formData) {
+  const onSubmit = async (data: FormData) => {
+    if (selectedStudent) {
       try {
-        const result = await updateStudent(selectedStudent._id, formData);
+        const result = await updateStudent(selectedStudent._id, data);
 
         if (result.updated) {
-          const formattedData = JSON.stringify(formData, null, 2);
-
           toast.success('Student details updated successfully', {
-            description: `Updated Data:\n\n${formattedData}`,
+            description: `Updated Data:\n\n${JSON.stringify(data, null, 2)}`,
             action: {
               label: "Undo",
               onClick: () => console.log("Undo"),
             },
           });
-          setStudentList(prevList => prevList.map(student => student._id === selectedStudent._id ? { ...student, ...formData } : student));
-
+          setStudentList(prevList => prevList.map(student => student._id === selectedStudent._id ? { ...student, ...data } : student));
           handleCloseDialog();
         } else {
           throw new Error('Failed to update student.');
@@ -96,11 +109,13 @@ const Alldetails = ({ students }: AlldetailsProps) => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">All Student Details</h1>
-      <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-        <div className="border-b border-gray-200">
-          <div className="flex items-center p-4 bg-gray-100 text-gray-600 font-medium">
+    <div className={`p-5 min-h-screen ${theme === 'dark' ? 'bg-[#0a1d3b]' : 'bg-gray-100'}`}>
+      <h1 className={`text-3xl font-bold text-center ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'} mb-8`}>
+        All Student Details
+      </h1>
+      <div className={`bg-white shadow-lg rounded-lg overflow-hidden ${theme === 'dark' ? 'bg-[#002f6c]' : 'bg-white'}`}>
+        <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className={`flex items-center p-4 ${theme === 'dark' ? 'bg-[#003366] text-white' : 'bg-[#003366] text-white'} font-medium`}>
             <div className="flex-1">Name</div>
             <div className="flex-1">Email</div>
             <div className="flex-1">Role</div>
@@ -108,87 +123,123 @@ const Alldetails = ({ students }: AlldetailsProps) => {
           </div>
         </div>
         <div>
-          {studentList.map(student => (
-            <div key={student._id} className="flex items-center p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors duration-200">
-              <div className="flex-1 font-semibold text-gray-800">{student.name}</div>
-              <div className="flex-1 text-gray-600">{student.email}</div>
-              <div className="flex-1 text-gray-600">{student.role}</div>
-              <div className="flex-none flex space-x-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" onClick={() => handleOpenDialog(student)}>
-                      <Pencil className="h-4 text-[#0444bf]" />
-                    </Button>
-                  </DialogTrigger>
-                  {selectedStudent && (
-                    <DialogContent className="sm:max-w-[425px]">
+          {studentList.length > 0 ? (
+            studentList.map(student => (
+              <div
+                key={student._id}
+                className={`flex items-center p-4 border-b transition-colors duration-200 
+                  ${theme === 'dark' ? 'border-gray-700 hover:bg-[#003366] hover:text-white' : 'border-gray-200 hover:bg-[#e0e0e0] hover:text-black'}
+                  ${theme === 'dark' ? 'bg-[#002f6c] text-white' : 'bg-white text-gray-600'}`}
+              >
+                <div className="flex-1 font-semibold">{student.name}</div>
+                <div className="flex-1">{student.email}</div>
+                <div className="flex-1">{student.role}</div>
+                <div className="flex-none flex space-x-2">
+                  <Dialog open={!!selectedStudent} onOpenChange={handleCloseDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" onClick={() => handleOpenDialog(student)}>
+                        <Pencil className={`h-4 ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'}`} />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className={`sm:max-w-[425px] ${theme === 'dark' ? 'bg-[#002f6c]' : 'bg-[#e6f0ff]'}`}>
                       <DialogHeader>
                         <DialogTitle>Edit Student</DialogTitle>
                         <DialogDescription>
                           Make changes to the student details here. Click save when you're done.
                         </DialogDescription>
                       </DialogHeader>
-                      <div className="grid gap-4 py-4">
+                      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="name" className="text-right">
+                          <Label htmlFor="name" className={`text-right ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'}`}>
                             Name
                           </Label>
-                          <Input
-                            id="name"
-                            value={formData?.name || ''}
-                            onChange={(e) => setFormData(prev => prev ? { ...prev, name: e.target.value } : null)}
-                            className="col-span-3"
-                          />
+                          <div className="col-span-3">
+                            <Controller
+                              control={control}
+                              name="name"
+                              render={({ field }) => (
+                                <Input
+                                  id="name"
+                                  placeholder="Name"
+                                  {...field}
+                                  className={`border ${theme === 'dark' ? 'border-[#e0e0e0]' : 'border-[#003366]'}`}
+                                />
+                              )}
+                            />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+                          </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="email" className="text-right">
+                          <Label htmlFor="email" className={`text-right ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'}`}>
                             Email
                           </Label>
-                          <Input
-                            id="email"
-                            value={formData?.email || ''}
-                            onChange={(e) => setFormData(prev => prev ? { ...prev, email: e.target.value } : null)}
-                            className="col-span-3"
-                          />
+                          <div className="col-span-3">
+                            <Controller
+                              control={control}
+                              name="email"
+                              render={({ field }) => (
+                                <Input
+                                  id="email"
+                                  placeholder="Email"
+                                  {...field}
+                                  className={`border ${theme === 'dark' ? 'border-[#e0e0e0]' : 'border-[#003366]'}`}
+                                />
+                              )}
+                            />
+                            {errors.email && <p className="text-red-500 text-sm">{errors.email.message}</p>}
+                          </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="role" className="text-right">
+                          <Label htmlFor="role" className={`text-right ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'}`}>
                             Role
                           </Label>
-                          <div className="select-wrapper">
-                          <Select
-                            value={formData?.role || ''}
-                            onValueChange={(value) => setFormData(prev => prev ? { ...prev, role: value } : null)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectLabel>Roles</SelectLabel>
-                                <SelectItem value="Student">Student</SelectItem>
-                                <SelectItem value="Teacher">Teacher</SelectItem>
-                                <SelectItem value="Admin">Admin</SelectItem>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <div className="col-span-3">
+                            <Controller
+                              control={control}
+                              name="role"
+                              render={({ field }) => (
+                                <Select
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  disabled={field.disabled}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a role" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectGroup>
+                                      <SelectLabel>Roles</SelectLabel>
+                                      <SelectItem value="Student">Student</SelectItem>
+                                      <SelectItem value="Admin">Admin</SelectItem>
+                                    </SelectGroup>
+                                  </SelectContent>
+                                </Select>
+                              )}
+                            />
+                            {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
+                          </div>
                         </div>
-
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button type="button" variant="outline" onClick={handleCloseDialog}>Cancel</Button>
-                        <Button type="button" onClick={handleSubmit}>Save</Button>
-                      </DialogFooter>
+                        <DialogFooter>
+                          <Button type="submit">Save Changes</Button>
+                          <Button type="button" onClick={handleCloseDialog} variant="outline">
+                            Cancel
+                          </Button>
+                        </DialogFooter>
+                      </form>
                     </DialogContent>
-                  )}
-                </Dialog>
-                <Button variant="outline" onClick={() => handleDelete(student._id)}>
-                  <Trash className="h-4 text-red-600" />
-                </Button>
+                  </Dialog>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDelete(student._id)}
+                  >
+                    <Trash className={`h-4 ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#d43f30]'}`} />
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <div className="p-4 text-center text-gray-500">No students found</div>
+          )}
         </div>
       </div>
     </div>

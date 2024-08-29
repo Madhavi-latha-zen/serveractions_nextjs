@@ -58,6 +58,19 @@
     --chart-5: 340 75% 55%;
   }
 }
+:root {
+  --bg-main: white;
+  --text-main: #333;
+  --button-bg: #1d4ed8;
+  --button-hover-bg: #1e40af;
+}
+
+[data-theme='dark'] {
+  --bg-main: #001f3f;
+  --text-main: #f0f0f0;
+  --button-bg: #3b82f6; 
+  --button-hover-bg: #2563eb;
+}
 
 @layer base {
   * {

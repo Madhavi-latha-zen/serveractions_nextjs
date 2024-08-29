@@ -20,7 +20,10 @@ export default async function handler(
     const { name, email }: StudentRequestBody = req.body;
 
     try {
-      const result = await createStudent({ name, email });
+      const result = await createStudent({
+        name, email,
+        role: ''
+      });
 
       if (result.created) {
         res.status(200).json(result);
