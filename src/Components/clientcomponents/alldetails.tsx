@@ -52,6 +52,7 @@ interface AlldetailsProps {
 const Alldetails = ({ students }: AlldetailsProps) => {
   const [studentList, setStudentList] = useState<Student[]>(students);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>(""); // Added state for search
   const { theme } = useTheme();
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
@@ -108,11 +109,29 @@ const Alldetails = ({ students }: AlldetailsProps) => {
     }
   };
 
+  // Filtered students based on the search query
+  const filteredStudents = studentList.filter(student =>
+    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.role.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className={`p-5 min-h-screen ${theme === 'dark' ? 'bg-[#0a1d3b]' : 'bg-gray-100'}`}>
       <h1 className={`text-3xl font-bold text-center ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'} mb-8`}>
         All Student Details
       </h1>
+
+      {/* Search Input */}
+      <div className="mb-4">
+        <Input
+          placeholder="Search by name, email, or role"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full max-w-md mx-auto"
+        />
+      </div>
+
       <div className={`bg-white shadow-lg rounded-lg overflow-hidden ${theme === 'dark' ? 'bg-[#002f6c]' : 'bg-white'}`}>
         <div className={`border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className={`flex items-center p-4 ${theme === 'dark' ? 'bg-[#003366] text-white' : 'bg-[#003366] text-white'} font-medium`}>
@@ -123,8 +142,8 @@ const Alldetails = ({ students }: AlldetailsProps) => {
           </div>
         </div>
         <div>
-          {studentList.length > 0 ? (
-            studentList.map(student => (
+          {filteredStudents.length > 0 ? (
+            filteredStudents.map(student => (
               <div
                 key={student._id}
                 className={`flex items-center p-4 border-b transition-colors duration-200 
@@ -198,19 +217,16 @@ const Alldetails = ({ students }: AlldetailsProps) => {
                               control={control}
                               name="role"
                               render={({ field }) => (
-                                <Select
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  disabled={field.disabled}
-                                >
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
                                   <SelectTrigger>
-                                    <SelectValue placeholder="Select a role" />
+                                    <SelectValue placeholder="Select role" />
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
-                                      <SelectLabel>Roles</SelectLabel>
-                                      <SelectItem value="Student">Student</SelectItem>
+                                      <SelectLabel>Select Role</SelectLabel>
                                       <SelectItem value="Admin">Admin</SelectItem>
+                                      <SelectItem value="User">User</SelectItem>
+                                      <SelectItem value="Editor">Editor</SelectItem>
                                     </SelectGroup>
                                   </SelectContent>
                                 </Select>
@@ -219,26 +235,22 @@ const Alldetails = ({ students }: AlldetailsProps) => {
                             {errors.role && <p className="text-red-500 text-sm">{errors.role.message}</p>}
                           </div>
                         </div>
-                        <DialogFooter>
-                          <Button type="submit">Save Changes</Button>
-                          <Button type="button" onClick={handleCloseDialog} variant="outline">
-                            Cancel
-                          </Button>
-                        </DialogFooter>
                       </form>
+                      <DialogFooter>
+                        <Button type="submit" onClick={handleSubmit(onSubmit)}>
+                          Save changes
+                        </Button>
+                      </DialogFooter>
                     </DialogContent>
                   </Dialog>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleDelete(student._id)}
-                  >
-                    <Trash className={`h-4 ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#d43f30]'}`} />
+                  <Button variant="outline" onClick={() => handleDelete(student._id)}>
+                    <Trash className={`h-4 ${theme === 'dark' ? 'text-[#e0e0e0]' : 'text-[#003366]'}`} />
                   </Button>
                 </div>
               </div>
             ))
           ) : (
-            <div className="p-4 text-center text-gray-500">No students found</div>
+            <div className="p-4 text-center text-gray-500">No students found.</div>
           )}
         </div>
       </div>
@@ -247,4 +259,3 @@ const Alldetails = ({ students }: AlldetailsProps) => {
 };
 
 export default Alldetails;
-

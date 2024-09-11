@@ -55,20 +55,24 @@ const Usermanagement: React.FC = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const result = await getAllUsers();
+        const response = await fetch('/api/users');
+        const result = await response.json();
+  
         if (result.success && Array.isArray(result.data)) {
           setUsers(result.data);
         } else {
-          console.error('Failed to fetch users:', result.error ?? 'No data returned');
+          console.error('Failed to fetch users:', result.error);
         }
       } catch (error) {
-        console.error('Error in fetching users:', error instanceof Error ? error.message : 'Unknown error');
+        console.error('Error in fetching users:', error);
       }
     };
-
+  
     fetchUsers();
-  }, []);
-
+  }, []); 
+  
+  
+  
   const handleOpenDialog = (user: User) => {
     setSelectedUser(user);
     reset({ username: user.username, email: user.email });
